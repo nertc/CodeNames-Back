@@ -1,11 +1,11 @@
-var crypto = require("crypto");
+var {v4: uuidv4} = require("uuid");
 
 const idLastJoin = {};
 
 function generateUserId() {
   let id = "";
   do {
-    id = crypto.randomUUID();
+    id = uuidv4();
   } while (
     idLastJoin[id] &&
     new Date(idLastJoin[id].getDate() + 2) >= Date.now()

@@ -28,7 +28,7 @@ const rooms = {};
 
 function joinRoom(roomId, userId) {
   const room = rooms[roomId];
-  if (!room?.players) {
+  if (!room) {
     const guide = Math.floor(Math.random() * 2);
     const teams = getTeams(TEAMS);
     const words = getWords(WORDS_COUNT).reduce((acc, word, index) => {
@@ -76,7 +76,7 @@ function joinRoom(roomId, userId) {
 
 function getRoomInfo(roomId, userId) {
   const currentRoom = rooms[roomId];
-  if (!currentRoom?.players) {
+  if (!currentRoom) {
     throw new NotFoundError("Room not found");
   }
   if (!currentRoom.players.includes(userId)) {
@@ -93,7 +93,7 @@ function getRoomInfo(roomId, userId) {
 
 function updateKeys(roomId, userId, keys) {
   const room = rooms[roomId];
-  if (!room?.currentKey) {
+  if (!room) {
     throw new NotFoundError("Room not found");
   }
   if (room.players[room.guide] !== userId) {
@@ -113,7 +113,7 @@ function updateKeys(roomId, userId, keys) {
 function guessWord(roomId, userId, wordIndex) {
   const room = rooms[roomId];
   const userIndex = (room.guide + 1) % 2;
-  if (!room?.words) {
+  if (!room) {
     throw new NotFoundError("Room not found");
   }
   if (room.players[userIndex] !== userId) {

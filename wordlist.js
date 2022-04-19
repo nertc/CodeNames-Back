@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const buffer = fs.readFileSync("wordlist.txt");
-const words = buffer.toString().split("\r\n");
+const words = buffer.toString().split(/\r?\n/);
 
 function getWords(numOfWords) {
   const generatedWords = [];
