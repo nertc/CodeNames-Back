@@ -1,4 +1,5 @@
-function getTeams(numberOfTeams) {
+function getTeams(originalNumberOfTeams) {
+  const numberOfTeams = originalNumberOfTeams.map((team) => ({ ...team }));
   const teams = [];
   while (numberOfTeams.length) {
     const index = Math.floor(Math.random() * numberOfTeams.length);
