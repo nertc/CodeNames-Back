@@ -90,11 +90,10 @@ function getRoomInfo(roomId, userId) {
       if(guide || word.active) {
         return word;
       } else {
-        const newWord = {
-          ...word
+        return {
+          word: word.word,
+          active: word.active          
         };
-        delete newWord.team;
-        return newWord;
       }
     }),
     currentKey: currentRoom.currentKey,
