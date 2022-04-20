@@ -5,18 +5,26 @@ const { HTTPError } = require("./Errors/HTTPError");
 const { InternalServerError } = require("./Errors/InternalServerError");
 
 const express = require("express");
+const cors = require("cors");
 
 const app = express();
 const port = process.env.PORT || 3000;
+const corsAllowedUrls = ['https://codehs.com']
+
+const corsPass = (req, callback) => {
+  const corsPassOptions = {origin: corsAllowedUrls.includes(req.header('Origin'))};
+  callback(null, corsPassOptions);
+};
 
 app.use(express.json());
+app.use(cors(corsPass));
 
 app.post("/room/:roomId/join", (req, res, next) => {
   const { roomId } = req.params;
   const userId = generateUserId();
   try {
     joinRoom(roomId, userId);
-    res.send(userId);
+    res.json({userId});
   } catch (err) {
     next(err);
   }
@@ -27,7 +35,7 @@ app.get("/room/:roomId", (req, res, next) => {
   const { userId } = req.body;
   try {
     const room = getRoomInfo(roomId, userId);
-    res.send(room);
+    res.json(room);
   } catch (err) {
     next(err);
   }
