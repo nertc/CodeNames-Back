@@ -9,11 +9,11 @@ const cors = require("cors");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const corsAllowedUrls = ["https://codehs.com"];
+const corsAllowedKeywords = ["codehs"];
 
 const corsPass = (req, callback) => {
   const corsPassOptions = {
-    origin: corsAllowedUrls.includes(req.header("Origin")),
+    origin: corsAllowedKeywords.some(keyword => typeof req.header("Origin") === 'string' && req.header("Origin").includes(keyword)),
   };
   callback(null, corsPassOptions);
 };
