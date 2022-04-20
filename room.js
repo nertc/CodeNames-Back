@@ -83,9 +83,20 @@ function getRoomInfo(roomId, userId) {
     throw new NotAuthorizedError();
   }
   currentRoom.lastActivity[userId] = new Date();
+  const guide = currentRoom.players[currentRoom.guide] === userId;
   return {
-    guide: currentRoom.players[currentRoom.guide] === userId,
-    words: currentRoom.words,
+    guide,
+    words: currentRoom.words.map(word => {
+      if(guide || word.active) {
+        return word;
+      } else {
+        const newWord = {
+          ...word
+        };
+        delete newWord.team;
+        return newWord;
+      }
+    }),
     currentKey: currentRoom.currentKey,
     isActivePlayer: currentRoom.players[currentRoom.activePlayer] === userId,
   };

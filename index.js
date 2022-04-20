@@ -9,10 +9,12 @@ const cors = require("cors");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const corsAllowedUrls = ['https://codehs.com']
+const corsAllowedUrls = ["https://codehs.com"];
 
 const corsPass = (req, callback) => {
-  const corsPassOptions = {origin: corsAllowedUrls.includes(req.header('Origin'))};
+  const corsPassOptions = {
+    origin: corsAllowedUrls.includes(req.header("Origin")),
+  };
   callback(null, corsPassOptions);
 };
 
@@ -24,7 +26,7 @@ app.post("/room/:roomId/join", (req, res, next) => {
   const userId = generateUserId();
   try {
     joinRoom(roomId, userId);
-    res.json({userId});
+    res.json({ userId });
   } catch (err) {
     next(err);
   }
@@ -32,7 +34,7 @@ app.post("/room/:roomId/join", (req, res, next) => {
 
 app.get("/room/:roomId", (req, res, next) => {
   const { roomId } = req.params;
-  const { userId } = req.body;
+  const { userid: userId } = req.headers;
   try {
     const room = getRoomInfo(roomId, userId);
     res.json(room);
@@ -43,7 +45,8 @@ app.get("/room/:roomId", (req, res, next) => {
 
 app.post("/room/:roomId/keys", (req, res, next) => {
   const roomId = req.params.roomId;
-  const { word, count, userId } = req.body;
+  const { userid: userId } = req.headers;
+  const { word, count } = req.body;
   try {
     updateKeys(roomId, userId, { word, count });
     res.send();
@@ -54,7 +57,8 @@ app.post("/room/:roomId/keys", (req, res, next) => {
 
 app.post("/room/:roomId/guess", (req, res, next) => {
   const { roomId } = req.params;
-  const { wordIndex, userId } = req.body;
+  const { userid: userId } = req.headers;
+  const { wordIndex } = req.body;
   try {
     guessWord(roomId, userId, wordIndex);
     res.send();
