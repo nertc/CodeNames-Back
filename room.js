@@ -182,10 +182,16 @@ function guessWord(roomId, userId, wordIndex) {
   room.words[wordIndex].active = true;
   room.guessLeft--;
   if (room.words[wordIndex].team === "teammate" && room.guessLeft > 0) {
-    return true;
+    return {
+      team: room.words[wordIndex].team,
+      isActivePlayer: true,
+    };
   }
   changeTurn(roomId);
-  return false;
+  return {
+    team: room.words[wordIndex].team,
+    isActivePlayer: false,
+  };
 }
 
 function changeTurn(roomId) {

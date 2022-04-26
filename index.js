@@ -70,8 +70,8 @@ app.post("/room/:roomId/guess", (req, res, next) => {
   const { userid: userId } = req.headers;
   const { wordIndex } = req.body;
   try {
-    guessWord(roomId, userId, wordIndex);
-    res.send();
+    const guess = guessWord(roomId, userId, wordIndex);
+    res.json(guess);
   } catch (err) {
     next(err);
   }
