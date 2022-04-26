@@ -1,5 +1,11 @@
 const { generateUserId } = require("./id");
-const { getRoomInfo, joinRoom, updateKeys, guessWord } = require("./room");
+const {
+  getRoomInfo,
+  joinRoom,
+  updateKeys,
+  guessWord,
+  refreshRoom,
+} = require("./room");
 const { getWords } = require("./wordlist");
 const { HTTPError } = require("./Errors/HTTPError");
 const { InternalServerError } = require("./Errors/InternalServerError");
@@ -13,7 +19,11 @@ const corsAllowedKeywords = ["codehs"];
 
 const corsPass = (req, callback) => {
   const corsPassOptions = {
-    origin: corsAllowedKeywords.some(keyword => typeof req.header("Origin") === 'string' && req.header("Origin").includes(keyword)),
+    origin: corsAllowedKeywords.some(
+      (keyword) =>
+        typeof req.header("Origin") === "string" &&
+        req.header("Origin").includes(keyword)
+    ),
   };
   callback(null, corsPassOptions);
 };
@@ -67,6 +77,17 @@ app.post("/room/:roomId/guess", (req, res, next) => {
   }
 });
 
+app.post("/room/:roomId/refresh", (req, res, next) => {
+  const { roomId } = req.params;
+  const { userid: userId } = req.headers;
+  try {
+    refreshRoom(roomId, userId);
+    res.send();
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use((err, req, res, next) => {
   if (!(err instanceof HTTPError)) {
     console.error(err);
@@ -76,7 +97,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Example app listening on http://localhost:${port}`);
 });
 
 getWords();

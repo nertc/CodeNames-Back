@@ -26,19 +26,25 @@ const TEAMS = [
 
 const rooms = {};
 
+function getWordsArray() {
+  const teams = getTeams(TEAMS);
+  const words = getWords(WORDS_COUNT).reduce((acc, word, index) => {
+    acc.push({
+      word,
+      team: teams[index],
+      active: false,
+    });
+    return acc;
+  }, []);
+
+  return words;
+}
+
 function joinRoom(roomId, userId) {
   const room = rooms[roomId];
   if (!room) {
     const guide = Math.floor(Math.random() * 2);
-    const teams = getTeams(TEAMS);
-    const words = getWords(WORDS_COUNT).reduce((acc, word, index) => {
-      acc.push({
-        word,
-        team: teams[index],
-        active: false,
-      });
-      return acc;
-    }, []);
+    const words = getWordsArray();
     rooms[roomId] = {
       players: [userId],
       guide,
@@ -49,6 +55,7 @@ function joinRoom(roomId, userId) {
         [userId]: new Date(),
       },
       guessLeft: 0,
+      gameOver: false,
     };
   } else if (room.players.length === 1) {
     room.players.push(userId);
@@ -74,30 +81,56 @@ function joinRoom(roomId, userId) {
   }
 }
 
-function getRoomInfo(roomId, userId) {
-  const currentRoom = rooms[roomId];
-  if (!currentRoom) {
+function refreshRoom(roomId, userId) {
+  const room = rooms[roomId];
+  if (!room) {
     throw new NotFoundError("Room not found");
   }
-  if (!currentRoom.players.includes(userId)) {
+  if (!room.players.includes(userId)) {
     throw new NotAuthorizedError();
   }
-  currentRoom.lastActivity[userId] = new Date();
-  const guide = currentRoom.players[currentRoom.guide] === userId;
+  if (!room.gameOver) {
+    throw new ForbiddenError("Game is not over");
+  }
+
+  const guide = (room.guide + 1) % 2;
+  rooms[roomId] = {
+    players: room.players,
+    guide,
+    words: getWordsArray(),
+    currentKey: {},
+    activePlayer: guide,
+    lastActivity: room.lastActivity,
+    guessLeft: 0,
+    gameOver: false,
+  };
+}
+
+function getRoomInfo(roomId, userId) {
+  const room = rooms[roomId];
+  if (!room) {
+    throw new NotFoundError("Room not found");
+  }
+  if (!room.players.includes(userId)) {
+    throw new NotAuthorizedError();
+  }
+  updateActivity(roomId, userId);
+  const guide = room.players[room.guide] === userId;
   return {
     guide,
-    words: currentRoom.words.map(word => {
-      if(guide || word.active) {
+    words: room.words.map((word) => {
+      if (guide || word.active) {
         return word;
       } else {
         return {
           word: word.word,
-          active: word.active          
+          active: word.active,
         };
       }
     }),
-    currentKey: currentRoom.currentKey,
-    isActivePlayer: currentRoom.players[currentRoom.activePlayer] === userId,
+    currentKey: room.currentKey,
+    isActivePlayer: room.players[room.activePlayer] === userId,
+    gameOver: room.gameOver,
   };
 }
 
@@ -105,6 +138,9 @@ function updateKeys(roomId, userId, keys) {
   const room = rooms[roomId];
   if (!room) {
     throw new NotFoundError("Room not found");
+  }
+  if (room.gameOver) {
+    throw new ForbiddenError("Game is over");
   }
   if (room.players[room.guide] !== userId) {
     throw new ForbiddenError("Source is not a guide");
@@ -115,6 +151,7 @@ function updateKeys(roomId, userId, keys) {
   if (keys.count <= 0) {
     throw new ForbiddenError("Key count is zero");
   }
+  updateActivity(roomId, userId);
   room.currentKey = keys;
   room.guessLeft = keys.count + 1;
   changeTurn(roomId);
@@ -125,6 +162,9 @@ function guessWord(roomId, userId, wordIndex) {
   const userIndex = (room.guide + 1) % 2;
   if (!room) {
     throw new NotFoundError("Room not found");
+  }
+  if (room.gameOver) {
+    throw new ForbiddenError("Game is over");
   }
   if (room.players[userIndex] !== userId) {
     throw new ForbiddenError("Source is not a guesser");
@@ -138,6 +178,7 @@ function guessWord(roomId, userId, wordIndex) {
   if (room.words[wordIndex].active) {
     throw new ForbiddenError("Word is already active");
   }
+  updateActivity(roomId, userId);
   room.words[wordIndex].active = true;
   room.guessLeft--;
   if (room.words[wordIndex].team === "teammate" && room.guessLeft > 0) {
@@ -151,6 +192,27 @@ function changeTurn(roomId) {
   const room = rooms[roomId];
   room.activePlayer++;
   room.activePlayer %= 2;
+  if (room.guide === room.activePlayer) {
+    const enemies = room.words.filter(
+      (word) => !word.active && word.team === "enemy"
+    );
+    enemies[Math.floor(Math.random() * enemies.length)].active = true;
+    checkGameOver(roomId);
+  }
+}
+
+function checkGameOver(roomId) {
+  const room = rooms[roomId];
+  if (!room.words.some((word) => word.word === "enemy" && !word.active)) {
+    room.gameOver = true;
+    return true;
+  }
+  return false;
+}
+
+function updateActivity(roomId, userId) {
+  const room = rooms[roomId];
+  room.lastActivity[userId] = new Date();
 }
 
 module.exports = {
@@ -158,4 +220,5 @@ module.exports = {
   getRoomInfo,
   updateKeys,
   guessWord,
+  refreshRoom,
 };
