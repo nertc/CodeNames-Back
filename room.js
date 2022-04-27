@@ -209,7 +209,10 @@ function changeTurn(roomId) {
 
 function checkGameOver(roomId) {
   const room = rooms[roomId];
-  if (!room.words.some((word) => word.word === "enemy" && !word.active)) {
+  if (
+    !room.words.some((word) => word.team === "enemy" && !word.active) ||
+    room.words.some((word) => word.team === "bomb" && word.active)
+  ) {
     room.gameOver = true;
     return true;
   }
