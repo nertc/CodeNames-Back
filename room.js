@@ -3,6 +3,7 @@ const { getTeams } = require("./teams");
 const { NotAuthorizedError } = require("./Errors/NotAuthorizedError");
 const { NotFoundError } = require("./Errors/NotFoundError");
 const { ForbiddenError } = require("./Errors/ForbiddenError");
+const { EventEmitter } = require("ws");
 
 const WORDS_COUNT = 20;
 const TEAMS = [
@@ -25,6 +26,7 @@ const TEAMS = [
 ];
 
 const rooms = {};
+const roomUpdate = new EventEmitter();
 
 function getWordsArray() {
   const teams = getTeams(TEAMS);
@@ -104,6 +106,7 @@ function refreshRoom(roomId, userId) {
     guessLeft: 0,
     gameOver: false,
   };
+  emitRoom(roomId, userId);
 }
 
 function getRoomInfo(roomId, userId) {
@@ -155,6 +158,7 @@ function updateKeys(roomId, userId, keys) {
   room.currentKey = keys;
   room.guessLeft = keys.count + 1;
   changeTurn(roomId);
+  emitRoom(roomId, userId);
 }
 
 function guessWord(roomId, userId, wordIndex) {
@@ -182,12 +186,14 @@ function guessWord(roomId, userId, wordIndex) {
   room.words[wordIndex].active = true;
   room.guessLeft--;
   if (room.words[wordIndex].team === "teammate" && room.guessLeft > 0) {
+    emitRoom(roomId, userId);
     return {
       team: room.words[wordIndex].team,
       isActivePlayer: true,
     };
   }
   changeTurn(roomId);
+  emitRoom(roomId, userId);
   return {
     team: room.words[wordIndex].team,
     isActivePlayer: false,
@@ -224,10 +230,15 @@ function updateActivity(roomId, userId) {
   room.lastActivity[userId] = new Date();
 }
 
+function emitRoom(roomId, userId) {
+  roomUpdate.emit(roomId, getRoomInfo(roomId, userId));
+}
+
 module.exports = {
   joinRoom,
   getRoomInfo,
   updateKeys,
   guessWord,
   refreshRoom,
+  roomUpdate,
 };

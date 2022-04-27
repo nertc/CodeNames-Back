@@ -5,16 +5,21 @@ const {
   updateKeys,
   guessWord,
   refreshRoom,
+  roomUpdate,
 } = require("./room");
 const { getWords } = require("./wordlist");
 const { HTTPError } = require("./Errors/HTTPError");
 const { InternalServerError } = require("./Errors/InternalServerError");
 
 const express = require("express");
+const http = require("http");
+const WebSocket = require("ws");
 const cors = require("cors");
 
 const app = express();
 const port = process.env.PORT || 3000;
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 const corsAllowedKeywords = ["codehs"];
 
 const corsPass = (req, callback) => {
@@ -51,6 +56,20 @@ app.get("/room/:roomId", (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+wss.on("connection", (ws) => {
+  let roomId;
+  const sendRoomInfo = (roomInfo) => {
+    ws.send(JSON.stringify(roomInfo));
+  };
+
+  ws.on("message", (data, isBinary) => {
+    const { roomId: newRoomId } = JSON.parse(isBinary ? data : data.toString());
+    roomUpdate.off(roomId, sendRoomInfo);
+    roomId = newRoomId;
+    roomUpdate.on(roomId, sendRoomInfo);
+  });
 });
 
 app.post("/room/:roomId/keys", (req, res, next) => {
@@ -96,7 +115,7 @@ app.use((err, req, res, next) => {
   res.status(err.status).send(err.message);
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Example app listening on http://localhost:${port}`);
 });
 
