@@ -59,15 +59,18 @@ app.get("/room/:roomId", (req, res, next) => {
 });
 
 wss.on("connection", (ws) => {
-  let roomId;
-  const sendRoomInfo = (roomInfo) => {
-    ws.send(JSON.stringify(roomInfo));
+  let roomId, userId;
+  const sendRoomInfo = () => {
+    ws.send(JSON.stringify(getRoomInfo(roomId, userId)));
   };
 
   ws.on("message", (data, isBinary) => {
-    const { roomId: newRoomId } = JSON.parse(isBinary ? data : data.toString());
+    const { roomId: newRoomId, userId: newUserId } = JSON.parse(
+      isBinary ? data : data.toString()
+    );
     roomUpdate.off(roomId, sendRoomInfo);
     roomId = newRoomId;
+    userId = newUserId;
     roomUpdate.on(roomId, sendRoomInfo);
   });
 });

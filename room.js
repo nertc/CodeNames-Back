@@ -106,7 +106,7 @@ function refreshRoom(roomId, userId) {
     guessLeft: 0,
     gameOver: false,
   };
-  emitRoom(roomId, userId);
+  emitRoom(roomId);
 }
 
 function getRoomInfo(roomId, userId) {
@@ -158,7 +158,7 @@ function updateKeys(roomId, userId, keys) {
   room.currentKey = keys;
   room.guessLeft = keys.count + 1;
   changeTurn(roomId);
-  emitRoom(roomId, userId);
+  emitRoom(roomId);
 }
 
 function guessWord(roomId, userId, wordIndex) {
@@ -186,14 +186,14 @@ function guessWord(roomId, userId, wordIndex) {
   room.words[wordIndex].active = true;
   room.guessLeft--;
   if (room.words[wordIndex].team === "teammate" && room.guessLeft > 0) {
-    emitRoom(roomId, userId);
+    emitRoom(roomId);
     return {
       team: room.words[wordIndex].team,
       isActivePlayer: true,
     };
   }
   changeTurn(roomId);
-  emitRoom(roomId, userId);
+  emitRoom(roomId);
   return {
     team: room.words[wordIndex].team,
     isActivePlayer: false,
@@ -230,8 +230,8 @@ function updateActivity(roomId, userId) {
   room.lastActivity[userId] = new Date();
 }
 
-function emitRoom(roomId, userId) {
-  roomUpdate.emit(roomId, getRoomInfo(roomId, userId));
+function emitRoom(roomId) {
+  roomUpdate.emit(roomId);
 }
 
 module.exports = {
