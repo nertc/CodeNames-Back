@@ -53,32 +53,22 @@ function joinRoom(roomId, userId) {
       words,
       currentKey: {},
       activePlayer: guide,
-      lastActivity: {
-        [userId]: new Date(),
-      },
+      isOnline: {},
       guessLeft: 0,
       gameOver: false,
     };
   } else if (room.players.length === 1) {
     room.players.push(userId);
-    room.lastActivity[userId] = new Date();
   } else {
-    const player1Time = room.lastActivity[room.players[0]];
-    player1Time.setSeconds(player1Time.getSeconds() + 30);
-    if (player1Time < Date.now()) {
-      delete room.lastActivity[room.players[0]];
-      room.players[0] = userId;
-      room.lastActivity[userId] = new Date();
+    const offlinePlayer = room.players.findIndex(
+      (player) => !room.isOnline[player]
+    );
+    if (offlinePlayer !== -1) {
+      delete room.isOnline[room.players[offlinePlayer]];
+      room.players[offlinePlayer] = userId;
       return;
     }
-    const player2Time = room.lastActivity[room.players[1]];
-    player2Time.setSeconds(player2Time.getSeconds() + 30);
-    if (player2Time < Date.now()) {
-      delete room.lastActivity[room.players[1]];
-      room.players[1] = userId;
-      room.lastActivity[userId] = new Date();
-      return;
-    }
+
     throw new ForbiddenError("Room is full");
   }
 }
@@ -102,7 +92,7 @@ function refreshRoom(roomId, userId) {
     words: getWordsArray(),
     currentKey: {},
     activePlayer: guide,
-    lastActivity: room.lastActivity,
+    isOnline: room.isOnline,
     guessLeft: 0,
     gameOver: false,
   };
@@ -117,7 +107,6 @@ function getRoomInfo(roomId, userId) {
   if (!room.players.includes(userId)) {
     throw new NotAuthorizedError();
   }
-  updateActivity(roomId, userId);
   const guide = room.players[room.guide] === userId;
   return {
     guide,
@@ -154,7 +143,6 @@ function updateKeys(roomId, userId, keys) {
   if (keys.count <= 0) {
     throw new ForbiddenError("Key count is zero");
   }
-  updateActivity(roomId, userId);
   room.currentKey = keys;
   room.guessLeft = keys.count + 1;
   changeTurn(roomId);
@@ -182,7 +170,6 @@ function guessWord(roomId, userId, wordIndex) {
   if (room.words[wordIndex].active) {
     throw new ForbiddenError("Word is already active");
   }
-  updateActivity(roomId, userId);
   room.words[wordIndex].active = true;
   room.guessLeft--;
   if (room.words[wordIndex].team === "teammate" && room.guessLeft > 0) {
@@ -225,13 +212,32 @@ function checkGameOver(roomId) {
   return false;
 }
 
-function updateActivity(roomId, userId) {
-  const room = rooms[roomId];
-  room.lastActivity[userId] = new Date();
-}
-
 function emitRoom(roomId) {
   roomUpdate.emit(roomId);
+}
+
+function changeUserState(roomId, userId, state) {
+  const room = rooms[roomId];
+  if (!state) {
+    if (room) {
+      delete room.isOnline[userId];
+      if (
+        Object.getOwnPropertyNames(room.isOnline).every(
+          (player) => !room.isOnline[player]
+        )
+      ) {
+        delete rooms[roomId];
+      }
+    }
+    return;
+  }
+  if (!room) {
+    throw new NotFoundError("Room not found");
+  }
+  if (!room.players.includes(userId)) {
+    throw new NotAuthorizedError();
+  }
+  room.isOnline[userId] = true;
 }
 
 module.exports = {
@@ -240,5 +246,6 @@ module.exports = {
   updateKeys,
   guessWord,
   refreshRoom,
+  changeUserState,
   roomUpdate,
 };

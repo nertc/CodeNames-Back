@@ -5,6 +5,7 @@ const {
   updateKeys,
   guessWord,
   refreshRoom,
+  changeUserState,
   roomUpdate,
 } = require("./room");
 const { getWords } = require("./wordlist");
@@ -69,9 +70,20 @@ wss.on("connection", (ws) => {
       isBinary ? data : data.toString()
     );
     roomUpdate.off(roomId, sendRoomInfo);
+    changeUserState(roomId, userId, false);
     roomId = newRoomId;
     userId = newUserId;
-    roomUpdate.on(roomId, sendRoomInfo);
+    try {
+      changeUserState(roomId, userId, true);
+      roomUpdate.on(roomId, sendRoomInfo);
+    } catch (err) {
+      ws.send(getError(err).message);
+    }
+  });
+
+  ws.on("close", () => {
+    roomUpdate.off(roomId, sendRoomInfo);
+    changeUserState(roomId, userId, false);
   });
 });
 
@@ -110,11 +122,16 @@ app.post("/room/:roomId/refresh", (req, res, next) => {
   }
 });
 
-app.use((err, req, res, next) => {
+function getError(err) {
   if (!(err instanceof HTTPError)) {
     console.error(err);
     err = new InternalServerError();
   }
+  return err;
+}
+
+app.use((err, req, res, next) => {
+  err = getError(err);
   res.status(err.status).send(err.message);
 });
 
