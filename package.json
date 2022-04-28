@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "heroku-prebuild": "pkg -o ./app ./app.js"
+    "heroku-postbuild": "pkg -o ./app ./app.js"
   },
   "repository": {
     "type": "git",
