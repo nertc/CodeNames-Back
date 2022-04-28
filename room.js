@@ -56,6 +56,7 @@ function joinRoom(roomId, userId) {
       isOnline: {},
       guessLeft: 0,
       gameOver: false,
+      win: false,
     };
   } else if (room.players.length === 1) {
     room.players.push(userId);
@@ -95,6 +96,7 @@ function refreshRoom(roomId, userId) {
     isOnline: room.isOnline,
     guessLeft: 0,
     gameOver: false,
+    win: false,
   };
   emitRoom(roomId);
 }
@@ -123,6 +125,7 @@ function getRoomInfo(roomId, userId) {
     currentKey: room.currentKey,
     isActivePlayer: room.players[room.activePlayer] === userId,
     gameOver: room.gameOver,
+    win: room.win,
   };
 }
 
@@ -164,7 +167,7 @@ function guessWord(roomId, userId, wordIndex) {
   if (room.activePlayer !== userIndex) {
     throw new ForbiddenError("Not source's turn");
   }
-  if (room.words.length <= wordIndex) {
+  if (room.words.length <= wordIndex || wordIndex < 0) {
     throw new NotFoundError("Word not found");
   }
   if (room.words[wordIndex].active) {
@@ -173,6 +176,7 @@ function guessWord(roomId, userId, wordIndex) {
   room.words[wordIndex].active = true;
   room.guessLeft--;
   if (room.words[wordIndex].team === "teammate" && room.guessLeft > 0) {
+    checkGameOver(roomId);
     emitRoom(roomId);
     return {
       team: room.words[wordIndex].team,
@@ -206,6 +210,11 @@ function checkGameOver(roomId) {
     !room.words.some((word) => word.team === "enemy" && !word.active) ||
     room.words.some((word) => word.team === "bomb" && word.active)
   ) {
+    room.gameOver = true;
+    return true;
+  }
+  if (room.words.every((word) => word.team !== "teammate" || word.active)) {
+    room.win = true;
     room.gameOver = true;
     return true;
   }
