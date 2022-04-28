@@ -1,6 +1,6 @@
-const { BadRequestError } = require("../errors/BadRequestError");
-const { ForbiddenError } = require("../errors/ForbiddenError");
-const { NotAuthorizedError } = require("../errors/NotAuthorizedError");
+const { BadRequestError } = require("../errors/badRequestError");
+const { ForbiddenError } = require("../errors/forbiddenError");
+const { NotAuthorizedError } = require("../errors/notAuthorizedError");
 const { NotFoundError } = require("../errors/notFoundError");
 const { rooms } = require("./rooms");
 
