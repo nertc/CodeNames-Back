@@ -1,21 +1,19 @@
-const { generateUserId } = require("./id");
-const {
-  getRoomInfo,
-  joinRoom,
-  updateKeys,
-  guessWord,
-  refreshRoom,
-  changeUserState,
-  roomUpdate,
-} = require("./room");
-const { getWords } = require("./wordlist");
-const { HTTPError } = require("./Errors/HTTPError");
-const { InternalServerError } = require("./Errors/InternalServerError");
-
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
 const cors = require("cors");
+const { generateUserId } = require("./src/userId/generate");
+const { leaveRoom } = require("./src/room/leave");
+const { changeUserState } = require("./src/userId/changeState");
+const { joinRoom } = require("./src/room/join");
+const { getRoomInfo } = require("./src/room/getRoomInfo");
+const { updateKeys } = require("./src/room/interaction/updateKeys");
+const { guessWord } = require("./src/room/interaction/guessWord");
+const { refreshRoom } = require("./src/room/refresh");
+const { generateWords } = require("./src/wordlist/generate");
+const { roomUpdate$ } = require("./src/room/rooms");
+const { HTTPError } = require("./src/errors/httpError");
+const { InternalServerError } = require("./src/errors/InternalServerError");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -37,54 +35,41 @@ const corsPass = (req, callback) => {
 app.use(express.json());
 app.use(cors(corsPass));
 
-app.post("/room/:roomId/join", (req, res, next) => {
-  const { roomId } = req.params;
-  const userId = generateUserId();
-  try {
-    joinRoom(roomId, userId);
-    res.json({ userId });
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.get("/room/:roomId", (req, res, next) => {
-  const { roomId } = req.params;
-  const { userid: userId } = req.headers;
-  try {
-    const room = getRoomInfo(roomId, userId);
-    res.json(room);
-  } catch (err) {
-    next(err);
-  }
-});
-
 wss.on("connection", (ws) => {
-  let roomId, userId;
+  let roomId;
+  const userId = generateUserId();
+
   const sendRoomInfo = () => {
     ws.send(JSON.stringify(getRoomInfo(roomId, userId)));
   };
 
   ws.on("message", (data, isBinary) => {
-    const { roomId: newRoomId, userId: newUserId } = JSON.parse(
-      isBinary ? data : data.toString()
-    );
-    roomUpdate.off(roomId, sendRoomInfo);
-    changeUserState(roomId, userId, false);
+    const { roomId: newRoomId } = JSON.parse(isBinary ? data : data.toString());
+    if (roomId !== undefined) {
+      roomUpdate$.off(roomId, sendRoomInfo);
+      leaveRoom(roomId, userId);
+    }
     roomId = newRoomId;
-    userId = newUserId;
     try {
-      changeUserState(roomId, userId, true);
-      roomUpdate.on(roomId, sendRoomInfo);
+      joinRoom(roomId, userId);
+      roomUpdate$.on(roomId, sendRoomInfo);
+      sendRoomInfo();
     } catch (err) {
       ws.send(getError(err).message);
     }
   });
 
   ws.on("close", () => {
-    roomUpdate.off(roomId, sendRoomInfo);
-    changeUserState(roomId, userId, false);
+    roomUpdate$.off(roomId, sendRoomInfo);
+    leaveRoom(roomId, userId);
+    changeUserState(userId, false);
   });
+
+  ws.send(
+    JSON.stringify({
+      userId,
+    })
+  );
 });
 
 app.post("/room/:roomId/keys", (req, res, next) => {
@@ -136,7 +121,5 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(port, () => {
-  console.log(`Example app listening on http://localhost:${port}`);
+  console.log(`CodeNames app listening on http://localhost:${port}`);
 });
-
-getWords();
