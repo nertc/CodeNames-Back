@@ -13,7 +13,7 @@ const { refreshRoom } = require("./src/room/refresh");
 const { generateWords } = require("./src/wordlist/generate");
 const { roomUpdate$ } = require("./src/room/rooms");
 const { HTTPError } = require("./src/errors/httpError");
-const { InternalServerError } = require("./src/errors/InternalServerError");
+const { InternalServerError } = require("./src/errors/internalServerError");
 
 const app = express();
 const port = process.env.PORT || 3000;
