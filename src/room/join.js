@@ -1,3 +1,4 @@
+const { ForbiddenError } = require("../errors/forbiddenError");
 const { changeOnlineState } = require("./changeOnlineState");
 const { createRoom } = require("./create");
 const { rooms } = require("./rooms");
@@ -29,12 +30,14 @@ function joinNotFullRoom(roomId, userId) {
 function joinFullRoom(roomId, userId) {
   const room = rooms[roomId];
 
-  const offlinePlayer = room.players.findIndex(
+  const offlinePlayerIndex = room.players.findIndex(
     (player) => !room.isOnline[player]
   );
-  if (offlinePlayer !== -1) {
-    delete room.isOnline[room.players[offlinePlayer]];
-    room.players[offlinePlayer] = userId;
+  if (offlinePlayerIndex !== -1) {
+    const offlinePlayer = room.players[offlinePlayerIndex];
+    changeOnlineState(roomId, offlinePlayer, false);
+    room.players[offlinePlayerIndex] = userId;
+    changeOnlineState(roomId, userId, true);
     return;
   }
 
