@@ -1,9 +1,9 @@
 const { changeOnlineState } = require("./changeOnlineState");
 const { rooms } = require("./rooms");
-const { validateUserId } = require("./validate");
+const { validateRoomId } = require("./validate");
 
 function leaveRoom(roomId, userId) {
-  validateUserId(roomId, userId);
+  validateRoomId(roomId);
   const room = rooms[roomId];
   changeOnlineState(roomId, userId, false);
 
