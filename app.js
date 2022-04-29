@@ -60,9 +60,11 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
-    roomUpdate$.off(roomId, sendRoomInfo);
-    leaveRoom(roomId, userId);
-    changeUserState(userId, false);
+    if (roomId !== null) {
+      roomUpdate$.off(roomId, sendRoomInfo);
+      leaveRoom(roomId, userId);
+      changeUserState(userId, false);
+    }
   });
 
   ws.send(
