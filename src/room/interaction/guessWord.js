@@ -12,8 +12,10 @@ function guessWord(roomId, userId, wordIndex) {
   room.words[wordIndex].active = true;
   room.guessLeft--;
 
-  if (room.words[wordIndex].team === TEAMS.TEAMMATE && room.guessLeft > 0) {
-    checkGameOver(roomId);
+  if (
+    checkGameOver(roomId) ||
+    (room.words[wordIndex].team === TEAMS.TEAMMATE && room.guessLeft > 0)
+  ) {
     emitRoom(roomId);
     return {
       team: room.words[wordIndex].team,

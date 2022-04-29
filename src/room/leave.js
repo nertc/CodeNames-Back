@@ -7,7 +7,7 @@ function leaveRoom(roomId, userId) {
   const room = rooms[roomId];
   changeOnlineState(roomId, userId, false);
 
-  if (!Object.getOwnPropertyNames(room.isOnline)) {
+  if (!Object.getOwnPropertyNames(room.isOnline).length) {
     delete rooms[roomId];
   }
 }
