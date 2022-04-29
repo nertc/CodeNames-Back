@@ -36,7 +36,7 @@ app.use(express.json());
 app.use(cors(corsPass));
 
 wss.on("connection", (ws) => {
-  let roomId;
+  let roomId = null;
   const userId = generateUserId();
 
   const sendRoomInfo = () => {
@@ -44,8 +44,8 @@ wss.on("connection", (ws) => {
   };
 
   ws.on("message", (data, isBinary) => {
-    const { roomId: newRoomId } = JSON.parse(isBinary ? data : data.toString());
-    if (roomId !== undefined) {
+    const newRoomId = JSON.parse(isBinary ? data : data.toString()).roomId;
+    if (roomId !== null) {
       roomUpdate$.off(roomId, sendRoomInfo);
       leaveRoom(roomId, userId);
     }
