@@ -14,6 +14,7 @@ const { generateWords } = require("./src/wordlist/generate");
 const { roomUpdate$ } = require("./src/room/rooms");
 const { HTTPError } = require("./src/errors/httpError");
 const { InternalServerError } = require("./src/errors/internalServerError");
+const { BadRequestError } = require("./src/errors/badRequestError");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -45,7 +46,15 @@ wss.on("connection", (ws) => {
 
   ws.on("message", (data, isBinary) => {
     const newRoomId = JSON.parse(isBinary ? data : data.toString()).roomId;
-    if (roomId !== null) {
+    if (typeof newRoomId !== "number" || roomId === newRoomId) {
+      ws.send(
+        JSON.stringify(
+          new BadRequestError("RoomId is NaN or not different").message
+        )
+      );
+      return;
+    }
+    if (typeof roomId === "number") {
       roomUpdate$.off(roomId, sendRoomInfo);
       leaveRoom(roomId, userId);
     }
@@ -55,7 +64,7 @@ wss.on("connection", (ws) => {
       roomUpdate$.on(roomId, sendRoomInfo);
       sendRoomInfo();
     } catch (err) {
-      ws.send(getError(err).message);
+      ws.send(JSON.stringify(getError(err).message));
     }
   });
 
