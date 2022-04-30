@@ -39,6 +39,7 @@ app.use(cors(corsPass));
 wss.on("connection", (ws) => {
   let roomId = null;
   const userId = generateUserId();
+  const ping = setInterval(() => ws.ping(), 10000);
 
   const sendRoomInfo = () => {
     ws.send(JSON.stringify(getRoomInfo(roomId, userId)));
@@ -69,6 +70,7 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
+    clearInterval(ping);
     if (roomId !== null) {
       roomUpdate$.off(roomId, sendRoomInfo);
       leaveRoom(roomId, userId);
