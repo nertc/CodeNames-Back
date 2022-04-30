@@ -10,11 +10,11 @@ const { getRoomInfo } = require("./src/room/getRoomInfo");
 const { updateKeys } = require("./src/room/interaction/updateKeys");
 const { guessWord } = require("./src/room/interaction/guessWord");
 const { refreshRoom } = require("./src/room/refresh");
-const { generateWords } = require("./src/wordlist/generate");
 const { roomUpdate$ } = require("./src/room/rooms");
 const { HTTPError } = require("./src/errors/httpError");
 const { InternalServerError } = require("./src/errors/internalServerError");
 const { BadRequestError } = require("./src/errors/badRequestError");
+const { endTurn } = require("./src/room/interaction/endturn");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -104,6 +104,17 @@ app.post("/room/:roomId/guess", (req, res, next) => {
   try {
     const guess = guessWord(roomId, userId, wordIndex);
     res.json(guess);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/room/:roomId/endturn", (req, res, next) => {
+  const { roomId } = req.params;
+  const { userid: userId } = req.headers;
+  try {
+    const enemyIndex = endTurn(roomId, userId);
+    res.json(enemyIndex);
   } catch (err) {
     next(err);
   }

@@ -4,6 +4,7 @@ const { rooms } = require("../rooms");
 const { validateWord } = require("../validate");
 const { changeTurn } = require("./changeTurn");
 const { checkGameOver } = require("./checkGameOver");
+const { showEnemy } = require("./showEnemy");
 
 function guessWord(roomId, userId, wordIndex) {
   validateWord(roomId, userId, wordIndex);
@@ -23,15 +24,7 @@ function guessWord(roomId, userId, wordIndex) {
     };
   }
 
-  const enemies = room.words
-    .map((word, index) => ({
-      ...word,
-      index,
-    }))
-    .filter((word) => !word.active && word.team === TEAMS.ENEMY);
-  const enemy = Math.floor(Math.random() * enemies.length);
-  const enemyIndex = enemies[enemy].index;
-  room.words[enemyIndex].active = true;
+  const enemyIndex = showEnemy(roomId);
 
   checkGameOver(roomId);
   changeTurn(roomId);
