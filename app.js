@@ -14,7 +14,7 @@ const { roomUpdate$ } = require("./src/room/rooms");
 const { HTTPError } = require("./src/errors/httpError");
 const { InternalServerError } = require("./src/errors/internalServerError");
 const { BadRequestError } = require("./src/errors/badRequestError");
-const { endTurn } = require("./src/room/interaction/endturn");
+const { endTurn } = require("./src/room/interaction/endTurn");
 
 const app = express();
 const port = process.env.PORT || 3000;
