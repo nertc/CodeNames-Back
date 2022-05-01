@@ -58,11 +58,12 @@ wss.on("connection", (ws) => {
     if (typeof roomId === "number") {
       roomUpdate$.off(roomId, sendRoomInfo);
       leaveRoom(roomId, userId);
+      roomId = null;
     }
-    roomId = newRoomId;
     try {
-      joinRoom(roomId, userId);
-      roomUpdate$.on(roomId, sendRoomInfo);
+      joinRoom(newRoomId, userId);
+      roomUpdate$.on(newRoomId, sendRoomInfo);
+      roomId = newRoomId;
       sendRoomInfo();
     } catch (err) {
       ws.send(JSON.stringify(getError(err).message));
