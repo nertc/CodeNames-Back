@@ -1,9 +1,9 @@
 const { generateWordTeamPair } = require("../shared/generateWordTeamPair");
 const { rooms } = require("./rooms");
 
-function createRoom(roomId) {
+async function createRoom(roomId) {
   const guide = Math.floor(Math.random() * 2);
-  const words = generateWordTeamPair();
+  const words = await generateWordTeamPair();
   const room = {
     players: [],
     guide,

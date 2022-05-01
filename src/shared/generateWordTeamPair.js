@@ -1,8 +1,8 @@
 const { generateTeams } = require("../teams/generate");
 const { generateWords } = require("../wordlist/generate");
 
-function generateWordTeamPair() {
-  const words = generateWords();
+async function generateWordTeamPair() {
+  const words = await generateWords();
   const teams = generateTeams();
   return words.map((word, i) => ({
     word,

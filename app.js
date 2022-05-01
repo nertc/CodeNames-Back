@@ -60,14 +60,13 @@ wss.on("connection", (ws) => {
       leaveRoom(roomId, userId);
       roomId = null;
     }
-    try {
-      joinRoom(newRoomId, userId);
-      roomUpdate$.on(newRoomId, sendRoomInfo);
-      roomId = newRoomId;
-      sendRoomInfo();
-    } catch (err) {
-      ws.send(JSON.stringify(getError(err).message));
-    }
+    joinRoom(newRoomId, userId)
+      .then(() => {
+        roomUpdate$.on(newRoomId, sendRoomInfo);
+        roomId = newRoomId;
+        sendRoomInfo();
+      })
+      .catch((err) => ws.send(JSON.stringify(getError(err).message)));
   });
 
   ws.on("close", () => {
@@ -124,12 +123,9 @@ app.post("/room/:roomId/endturn", (req, res, next) => {
 app.post("/room/:roomId/refresh", (req, res, next) => {
   const { roomId } = req.params;
   const { userid: userId } = req.headers;
-  try {
-    refreshRoom(roomId, userId);
-    res.send();
-  } catch (err) {
-    next(err);
-  }
+  refreshRoom(roomId, userId)
+    .then(() => res.send())
+    .catch((err) => next(err));
 });
 
 function getError(err) {

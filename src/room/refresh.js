@@ -3,11 +3,11 @@ const { emitRoom } = require("./emitRoom");
 const { rooms } = require("./rooms");
 const { validateUserId } = require("./validate");
 
-function refreshRoom(roomId, userId) {
+async function refreshRoom(roomId, userId) {
   validateUserId(roomId, userId);
   const room = rooms[roomId];
   const guide = (room.guide + 1) % 2;
-  const words = generateWordTeamPair();
+  const words = await generateWordTeamPair();
   const { players, isOnline } = room;
   const newRoom = {
     players,

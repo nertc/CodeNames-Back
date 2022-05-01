@@ -3,11 +3,11 @@ const { changeOnlineState } = require("./changeOnlineState");
 const { createRoom } = require("./create");
 const { rooms } = require("./rooms");
 
-function joinRoom(roomId, userId) {
+async function joinRoom(roomId, userId) {
   const room = rooms[roomId];
 
   if (!room) {
-    joinEmptyRoom(roomId, userId);
+    await joinEmptyRoom(roomId, userId);
   } else if (room.players.length === 1) {
     joinNotFullRoom(roomId, userId);
   } else {
@@ -15,8 +15,8 @@ function joinRoom(roomId, userId) {
   }
 }
 
-function joinEmptyRoom(roomId, userId) {
-  const room = createRoom(roomId);
+async function joinEmptyRoom(roomId, userId) {
+  const room = await createRoom(roomId);
   room.players.push(userId);
   changeOnlineState(roomId, userId, true);
 }
