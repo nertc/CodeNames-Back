@@ -1,28 +1,31 @@
 const { TEAMS_ARRANGEMENT } = require("./teams");
 
-const teamsArrangement = Object.getOwnPropertyNames(TEAMS_ARRANGEMENT).map(
-  (team) => ({
-    team,
-    count: TEAMS_ARRANGEMENT[team],
-  })
-);
+const teamsArrangement = Object.getOwnPropertyNames(TEAMS_ARRANGEMENT)
+  .map((team) => new Array(TEAMS_ARRANGEMENT[team]).fill(team))
+  .flat();
 
 function generateTeams() {
-  const numberOfTeams = teamsArrangement.map((team) => ({ ...team }));
-  const teams = [];
+  const positions = [...new Array(teamsArrangement.length).keys()];
+  const teams = [...teamsArrangement];
+  const result = new Array(teamsArrangement.length);
 
-  while (numberOfTeams.length) {
-    const index = Math.floor(Math.random() * numberOfTeams.length);
-    teams.push(numberOfTeams[index].team);
-    numberOfTeams[index].count--;
+  while (teams.length) {
+    const teamIndex = Math.floor(Math.random() * teams.length);
+    const positionIndex = Math.floor(Math.random() * positions.length);
 
-    if (numberOfTeams[index].count <= 0) {
-      numberOfTeams[index] = numberOfTeams[numberOfTeams.length - 1];
-      numberOfTeams.pop();
-    }
+    const randomTeam = teams[teamIndex];
+    const randomPosition = positions[positionIndex];
+
+    result[randomPosition] = randomTeam;
+
+    teams[teamIndex] = teams[teams.length - 1];
+    teams.pop();
+
+    positions[positionIndex] = positions[positions.length - 1];
+    positions.pop();
   }
 
-  return teams;
+  return result;
 }
 
 module.exports = {

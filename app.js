@@ -15,6 +15,7 @@ const { HTTPError } = require("./src/errors/httpError");
 const { InternalServerError } = require("./src/errors/internalServerError");
 const { BadRequestError } = require("./src/errors/badRequestError");
 const { endTurn } = require("./src/room/interaction/endTurn");
+const { ForbiddenError } = require("./src/errors/forbiddenError");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -38,35 +39,53 @@ app.use(cors(corsPass));
 
 wss.on("connection", (ws) => {
   let roomId = null;
+  let isJoining = false;
   const userId = generateUserId();
   const ping = setInterval(() => ws.ping(), 10000);
 
   const sendRoomInfo = () => {
     ws.send(JSON.stringify(getRoomInfo(roomId, userId)));
   };
+  const sendError = (err) => {
+    ws.send(JSON.stringify(getError(err).message));
+  };
 
   ws.on("message", (data, isBinary) => {
     const newRoomId = JSON.parse(isBinary ? data : data.toString()).roomId;
-    if (typeof newRoomId !== "number" || roomId === newRoomId) {
-      ws.send(
-        JSON.stringify(
-          new BadRequestError("RoomId is NaN or not different").message
-        )
-      );
+
+    // Checking
+    if (isJoining) {
+      sendError(new ForbiddenError("Source is already joining a room"));
       return;
     }
+    if (typeof newRoomId !== "number") {
+      sendError(new BadRequestError("RoomId is NaN"));
+      return;
+    }
+    if (roomId === newRoomId) {
+      sendError(new BadRequestError("RoomId is not different"));
+      return;
+    }
+    isJoining = true;
+
+    // Leave
     if (typeof roomId === "number") {
       roomUpdate$.off(roomId, sendRoomInfo);
       leaveRoom(roomId, userId);
       roomId = null;
     }
+
+    // Join
     joinRoom(newRoomId, userId)
       .then(() => {
         roomUpdate$.on(newRoomId, sendRoomInfo);
         roomId = newRoomId;
         sendRoomInfo();
       })
-      .catch((err) => ws.send(JSON.stringify(getError(err).message)));
+      .catch(sendError)
+      .then(() => {
+        isJoining = false;
+      });
   });
 
   ws.on("close", () => {

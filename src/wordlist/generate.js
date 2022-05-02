@@ -6,14 +6,7 @@ function generateWords() {
     .post("https://geonouns.herokuapp.com/random", {
       count: WORDS,
     })
-    .then(({ data }) => {
-      console.log(data);
-      return data;
-    })
-    .catch((err) => {
-      console.error(err);
-      throw err;
-    });
+    .then(({ data }) => data);
 }
 
 module.exports = {
