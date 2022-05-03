@@ -1,8 +1,9 @@
 const { TEAMS_ARRANGEMENT } = require("./teams");
 
-const teamsArrangement = Object.getOwnPropertyNames(TEAMS_ARRANGEMENT)
-  .map((team) => new Array(TEAMS_ARRANGEMENT[team]).fill(team))
-  .flat();
+const teamsArrangement = Object.getOwnPropertyNames(TEAMS_ARRANGEMENT).reduce(
+  (acc, team) => [...acc, ...new Array(TEAMS_ARRANGEMENT[team]).fill(team)],
+  []
+);
 
 function generateTeams() {
   const positions = [...new Array(teamsArrangement.length).keys()];
