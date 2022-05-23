@@ -32,6 +32,10 @@ const corsPass = (req, callback) => {
 app.use(express.json());
 app.use(cors(corsPass));
 
+app.get("/", (req, res) => {
+  res.redirect("https://github.com/nertc/CodeNames-Back");
+});
+
 wss.on("connection", (ws) => {
   let roomId = null;
   let isJoining = false;
