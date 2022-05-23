@@ -30,9 +30,9 @@ You can use already hosted server (`https://codenamesback.herokuapp.com`) or hos
 
    Response:
 
-   ```json
+   ```json5
    {
-     "userId": "string"
+     userId: "string",
    }
    ```
 
@@ -40,34 +40,34 @@ You can use already hosted server (`https://codenamesback.herokuapp.com`) or hos
 
    Request:
 
-   ```json
+   ```json5
    {
-     "roomId": "number"
+     roomId: "number",
    }
    ```
 
    Response:
 
-   ```json
+   ```json5
    {
-     "guide": "bool", // Wheter a player is a guide
-     "words": [
+     guide: "bool", // Wheter a player is a guide
+     words: [
        // Array of 20 words
        {
-         "word": "string", // Word
-         "team": "TEAM", // Team: enemy | teammate | neutral | bomb; Only shown to the guide or after word has been activated (clicked)
-         "active": "bool" // Wheter word has been activated (clicked)
-       }
+         word: "string", // Word
+         team: "TEAM", // Team: enemy | teammate | neutral | bomb; Only shown to the guide or after word has been activated (clicked)
+         active: "bool", // Wheter word has been activated (clicked)
+       },
        // ...
      ],
-     "currentKey": {
-       "word": "string", // Key word
-       "count": "number" // Key count
+     currentKey: {
+       word: "string", // Key word
+       count: "number", // Key count
        // Or empty object if no key has been given (at the start of the match)
      },
-     "isActivePlayer": "bool", // Wheter it's a player's turn
-     "gameOver": "bool", // If the game is over
-     "win": "bool" // If the game is won
+     isActivePlayer: "bool", // Wheter it's a player's turn
+     gameOver: "bool", // If the game is over
+     win: "bool", // If the game is won
    }
    ```
 
@@ -77,10 +77,10 @@ You can use already hosted server (`https://codenamesback.herokuapp.com`) or hos
 
       Request:
 
-      ```json
+      ```json5
       {
-        "word": "string", // Key word
-        "count": "number" // Key count >0
+        word: "string", // Key word
+        count: "number", // Key count >0
       }
       ```
 
@@ -88,17 +88,17 @@ You can use already hosted server (`https://codenamesback.herokuapp.com`) or hos
 
    2. Send to the Server (Guesser) `/room/:roomId/guess`
       Request:
-      ```json
+      ```json5
       {
-        "wordIndex": "number" // Guessed word index
+        wordIndex: "number", // Guessed word index
       }
       ```
       Response:
-      ```json
+      ```json5
       {
-        "team": "TEAM", // TEAM of the guessed word
-        "isActivePlayer": "bool", // Wheter a player is still active
-        "enemyIndex": "number" // Newly opened enemy index (only shown when the turn is over)
+        team: "TEAM", // TEAM of the guessed word
+        isActivePlayer: "bool", // Wheter a player is still active
+        enemyIndex: "number", // Newly opened enemy index (only shown when the turn is over)
       }
       ```
 
@@ -108,9 +108,9 @@ You can use already hosted server (`https://codenamesback.herokuapp.com`) or hos
 
    Response:
 
-   ```json
+   ```json5
    {
-     "enemyIndex": "number" // Newly opened enemy index
+     enemyIndex: "number", // Newly opened enemy index
    }
    ```
 
