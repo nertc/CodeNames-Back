@@ -36,6 +36,8 @@ You can use already hosted server (`https://codenamesback.herokuapp.com`) or hos
    }
    ```
 
+   _After that every request to the server API needs userId in the header_
+
 2. Send to the WebSocket
 
    Request:
