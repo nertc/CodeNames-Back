@@ -21,15 +21,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const corsAllowedKeywords = ["codehs"];
 
 const corsPass = (req, callback) => {
   const corsPassOptions = {
-    origin: corsAllowedKeywords.some(
-      (keyword) =>
-        typeof req.header("Origin") === "string" &&
-        req.header("Origin").includes(keyword)
-    ),
+    origin: true,
   };
   callback(null, corsPassOptions);
 };
